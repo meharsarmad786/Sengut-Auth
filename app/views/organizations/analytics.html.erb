@@ -65,14 +65,44 @@
           </h5>
         </div>
         <div class="card-body">
-          <% if defined?(Chartkick) %>
-            <%= line_chart @activity_chart_data, 
-                          height: "300px", 
-                          colors: ["#0d6efd"],
-                          suffix: " activities" %>
+          <% if @activity_chart_data.any? %>
+            <!-- Activity Timeline Bar Chart Alternative -->
+            <div class="activity-timeline">
+              <% max_activities = @activity_chart_data.values.max || 1 %>
+              <% @activity_chart_data.sort.each do |date, count| %>
+                <div class="activity-bar-item d-flex align-items-center mb-2">
+                  <div class="date-label me-3" style="min-width: 80px;">
+                    <small class="text-muted">
+                      <%= Date.parse(date.to_s).strftime("%m/%d") rescue date %>
+                    </small>
+                  </div>
+                  <div class="progress flex-grow-1 me-3" style="height: 20px;">
+                    <div class="progress-bar bg-primary" 
+                         role="progressbar" 
+                         style="width: <%= (count.to_f / max_activities * 100).round(1) %>%"
+                         aria-valuenow="<%= count %>" 
+                         aria-valuemin="0" 
+                         aria-valuemax="<%= max_activities %>">
+                    </div>
+                  </div>
+                  <div class="count-label">
+                    <span class="badge bg-primary"><%= count %></span>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+            
+            <div class="mt-3 text-center">
+              <small class="text-muted">
+                <i class="bi bi-info-circle"></i> 
+                Showing activity count per day for the last 30 days
+              </small>
+            </div>
           <% else %>
-            <div class="alert alert-info">
-              <i class="bi bi-info-circle"></i> Activity chart will be displayed here when Chartkick is properly configured.
+            <div class="text-center py-4">
+              <i class="bi bi-activity text-muted display-4 mb-3"></i>
+              <h6 class="text-muted">No Activity Data</h6>
+              <p class="text-muted">No activities recorded in the last 30 days.</p>
             </div>
           <% end %>
         </div>
@@ -88,20 +118,43 @@
           </h5>
         </div>
         <div class="card-body">
-          <% if defined?(Chartkick) %>
-            <%= pie_chart @user_role_chart_data, 
-                          height: "300px",
-                          colors: ["#dc3545", "#ffc107", "#198754"] %>
-          <% else %>
-            <div class="role-stats">
+          <% if @user_role_chart_data.any? %>
+            <div class="role-distribution">
+              <% total_members = @user_role_chart_data.values.sum %>
               <% @user_role_chart_data.each do |role, count| %>
-                <div class="d-flex justify-content-between mb-2">
-                  <span class="badge bg-<%= role == 'admin' ? 'danger' : role == 'moderator' ? 'warning' : 'success' %>">
-                    <%= role.capitalize %>
-                  </span>
-                  <strong><%= count %></strong>
+                <% percentage = total_members > 0 ? (count.to_f / total_members * 100).round(1) : 0 %>
+                <div class="role-item mb-3">
+                  <div class="d-flex justify-content-between mb-1">
+                    <span class="badge bg-<%= role == 'admin' ? 'danger' : role == 'moderator' ? 'warning' : 'success' %>">
+                      <i class="bi bi-<%= role == 'admin' ? 'shield-check' : role == 'moderator' ? 'person-badge' : 'person' %>"></i>
+                      <%= role.capitalize %>
+                    </span>
+                    <strong><%= count %> (<%= percentage %>%)</strong>
+                  </div>
+                  <div class="progress" style="height: 8px;">
+                    <div class="progress-bar bg-<%= role == 'admin' ? 'danger' : role == 'moderator' ? 'warning' : 'success' %>" 
+                         role="progressbar" 
+                         style="width: <%= percentage %>%"
+                         aria-valuenow="<%= percentage %>" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100">
+                    </div>
+                  </div>
                 </div>
               <% end %>
+            </div>
+            
+            <div class="text-center mt-3">
+              <small class="text-muted">
+                <i class="bi bi-info-circle"></i> 
+                Total: <%= @user_role_chart_data.values.sum %> members
+              </small>
+            </div>
+          <% else %>
+            <div class="text-center py-4">
+              <i class="bi bi-people text-muted display-4 mb-3"></i>
+              <h6 class="text-muted">No Role Data</h6>
+              <p class="text-muted">No member roles to display.</p>
             </div>
           <% end %>
         </div>
@@ -218,4 +271,47 @@
       </div>
     </div>
   </div>
-</div> 
+</div>
+
+<style>
+.stats-card {
+  border-left: 4px solid #0d6efd;
+  transition: transform 0.2s ease-in-out;
+}
+
+.stats-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.activity-timeline .activity-bar-item {
+  transition: background-color 0.2s ease;
+}
+
+.activity-timeline .activity-bar-item:hover {
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  padding: 4px;
+}
+
+.role-distribution .role-item {
+  transition: transform 0.2s ease;
+}
+
+.role-distribution .role-item:hover {
+  transform: translateX(5px);
+}
+
+.progress-bar {
+  transition: width 0.3s ease-in-out;
+}
+
+.card {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border: none;
+}
+
+.card:hover {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+</style>

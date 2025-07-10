@@ -18,28 +18,25 @@ class Organization < ApplicationRecord
   end
 
   def admin_users
-    users.joins(:organization_memberships)
-         .where(organization_memberships: { role: 'admin' })
+    users.where(organization_memberships: { role: 'admin' })
   end
 
   def moderator_users
-    users.joins(:organization_memberships)
-         .where(organization_memberships: { role: ['admin', 'moderator'] })
+    users.where(organization_memberships: { role: ['admin', 'moderator'] })
   end
 
   def member_users
-    users.joins(:organization_memberships)
-         .where(organization_memberships: { role: 'member' })
+    users.where(organization_memberships: { role: 'member' })
   end
 
   def adult_members
-    users.joins(:organization_memberships)
-         .where('users.date_of_birth <= ?', 18.years.ago.to_date)
+    cutoff_date = Date.current - 18.years
+    users.where('users.date_of_birth <= ?', cutoff_date)
   end
 
   def minor_members
-    users.joins(:organization_memberships)
-         .where('users.date_of_birth > ?', 18.years.ago.to_date)
+    cutoff_date = Date.current - 18.years
+    users.where('users.date_of_birth > ?', cutoff_date)
   end
 
   def participation_stats

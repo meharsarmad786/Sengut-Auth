@@ -88,20 +88,31 @@ class OrganizationsController < ApplicationController
   end
 
   def analytics
-    authorize! :read, :analytics
+    # Check if user has permission to view analytics
+    unless current_user.admin_of?(@organization) || current_user.moderator_of?(@organization)
+      redirect_to @organization, alert: 'Access denied. You must be an admin or moderator to view analytics.'
+      return
+    end
     
     @stats = @organization.participation_stats
     @member_stats = {
-      total_members: @organization.members_count,
+      total_members: @organization.users.count,
       adult_members: @organization.adult_members.count,
       minor_members: @organization.minor_members.count,
-      admin_count: @organization.admin_users.count,
-      moderator_count: @organization.moderator_users.count
+      admin_count: @organization.organization_memberships.where(role: 'admin').count,
+      moderator_count: @organization.organization_memberships.where(role: ['admin', 'moderator']).count
     }
     
-    @activity_chart_data = @organization.participation_activities
-                                      .group_by_day(:created_at, last: 30.days)
-                                      .count
+    # Safe activity chart data with fallback
+    begin
+      @activity_chart_data = @organization.participation_activities
+                                          .where('created_at >= ?', 30.days.ago)
+                                          .group("DATE(created_at)")
+                                          .count
+    rescue => e
+      Rails.logger.error "Activity chart error: #{e.message}"
+      @activity_chart_data = {}
+    end
     
     @user_role_chart_data = @organization.organization_memberships
                                         .group(:role).count
