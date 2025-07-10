@@ -1,0 +1,209 @@
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card shadow">
+        <div class="card-header bg-info text-white text-center">
+          <h3 class="mb-0">
+            <i class="bi bi-pencil"></i> Update Parental Consent
+          </h3>
+          <p class="mb-0 mt-2">Modify parent/guardian information</p>
+        </div>
+        <div class="card-body p-4">
+          <%= form_with(model: @parental_consent, local: true, class: "needs-validation", novalidate: true) do |form| %>
+            <% if @parental_consent.errors.any? %>
+              <div class="alert alert-danger">
+                <h6><i class="bi bi-exclamation-triangle"></i> Please fix the following errors:</h6>
+                <ul class="mb-0">
+                  <% @parental_consent.errors.full_messages.each do |message| %>
+                    <li><%= message %></li>
+                  <% end %>
+                </ul>
+              </div>
+            <% end %>
+
+            <!-- Current Status -->
+            <div class="alert alert-info">
+              <h6 class="alert-heading">
+                <i class="bi bi-info-circle"></i> Current Status
+              </h6>
+              <p class="mb-1">
+                <strong>Consent Status:</strong> 
+                <span class="badge bg-success">Active</span>
+              </p>
+              <p class="mb-0">
+                <strong>Original Consent Date:</strong> 
+                <%= @parental_consent.consent_given_at.strftime("%B %d, %Y") %>
+              </p>
+            </div>
+
+            <!-- Your Information (Read-Only) -->
+            <div class="card mb-4">
+              <div class="card-header">
+                <h6 class="mb-0">
+                  <i class="bi bi-person"></i> Minor Information (Read-Only)
+                </h6>
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-6">
+                    <p><strong>Name:</strong> <%= current_user.full_name %></p>
+                    <p><strong>Email:</strong> <%= current_user.email %></p>
+                  </div>
+                  <div class="col-md-6">
+                    <p><strong>Age:</strong> <%= current_user.age %> years old</p>
+                    <p><strong>Age Group:</strong> <%= current_user.age_group&.name || 'N/A' %></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Parent Information (Editable) -->
+            <div class="card mb-4">
+              <div class="card-header">
+                <h6 class="mb-0">
+                  <i class="bi bi-person-check"></i> Parent/Guardian Information
+                </h6>
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <%= form.label :parent_name, class: "form-label" do %>
+                        <i class="bi bi-person"></i> Parent/Guardian Full Name *
+                      <% end %>
+                      <%= form.text_field :parent_name, class: "form-control", 
+                                         placeholder: "Enter parent/guardian's full name", required: true %>
+                      <div class="invalid-feedback">
+                        Please provide your parent/guardian's full name.
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <%= form.label :parent_email, class: "form-label" do %>
+                        <i class="bi bi-envelope"></i> Parent/Guardian Email Address *
+                      <% end %>
+                      <%= form.email_field :parent_email, class: "form-control", 
+                                          placeholder: "Enter parent/guardian's email", required: true %>
+                      <div class="form-text">
+                        A notification will be sent to the new email address if changed.
+                      </div>
+                      <div class="invalid-feedback">
+                        Please provide a valid email address.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Update Notice -->
+            <div class="alert alert-warning">
+              <h6 class="alert-heading">
+                <i class="bi bi-exclamation-triangle"></i> Important Notice
+              </h6>
+              <p class="mb-2">
+                Updating this information will:
+              </p>
+              <ul class="mb-2">
+                <li>Send a notification email to the new parent/guardian email address</li>
+                <li>Update the consent record with the new information</li>
+                <li>Maintain your current consent status and permissions</li>
+                <li>Keep your existing organization memberships and activities</li>
+              </ul>
+              <p class="mb-0">
+                <small class="text-muted">
+                  <i class="bi bi-clock"></i> These changes take effect immediately after saving.
+                </small>
+              </p>
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+              <%= link_to @parental_consent, class: "btn btn-outline-secondary me-md-2" do %>
+                <i class="bi bi-arrow-left"></i> Cancel
+              <% end %>
+              <%= form.submit "Update Consent Information", class: "btn btn-info" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Danger Zone -->
+      <div class="card mt-4 border-danger">
+        <div class="card-header bg-danger text-white">
+          <h6 class="mb-0">
+            <i class="bi bi-exclamation-triangle"></i> Revoke Consent
+          </h6>
+        </div>
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h6 class="text-danger">Revoke Parental Consent</h6>
+              <p class="text-muted mb-0">
+                This will remove parental consent and restrict your ability to participate in organizations. 
+                This action can be reversed by submitting a new consent form.
+              </p>
+            </div>
+            <div class="col-md-4 text-end">
+              <%= link_to @parental_consent, 
+                          method: :delete, 
+                          class: "btn btn-danger",
+                          confirm: "Are you sure you want to revoke parental consent? This will restrict your participation in organizations." do %>
+                <i class="bi bi-x-circle"></i> Revoke Consent
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Help Information -->
+      <div class="card mt-4">
+        <div class="card-header">
+          <h6 class="mb-0">
+            <i class="bi bi-question-circle"></i> Need Help?
+          </h6>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <h6 class="text-primary">Common Updates:</h6>
+              <ul class="list-unstyled">
+                <li><i class="bi bi-arrow-right text-muted"></i> Parent/guardian name change</li>
+                <li><i class="bi bi-arrow-right text-muted"></i> New email address</li>
+                <li><i class="bi bi-arrow-right text-muted"></i> Contact information updates</li>
+              </ul>
+            </div>
+            <div class="col-md-6">
+              <h6 class="text-primary">What doesn't change:</h6>
+              <ul class="list-unstyled">
+                <li><i class="bi bi-check text-success"></i> Your organization memberships</li>
+                <li><i class="bi bi-check text-success"></i> Your activity history</li>
+                <li><i class="bi bi-check text-success"></i> Your participation permissions</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Bootstrap form validation
+  (function() {
+    'use strict';
+    window.addEventListener('load', function() {
+      var forms = document.getElementsByClassName('needs-validation');
+      var validation = Array.prototype.filter.call(forms, function(form) {
+        form.addEventListener('submit', function(event) {
+          if (form.checkValidity() === false) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+          form.classList.add('was-validated');
+        }, false);
+      });
+    }, false);
+  })();
+</script> 

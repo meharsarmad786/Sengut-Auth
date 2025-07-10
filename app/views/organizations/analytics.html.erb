@@ -1,0 +1,221 @@
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-6">
+          <i class="bi bi-graph-up"></i> Analytics - <%= @organization.name %>
+        </h1>
+        <%= link_to @organization, class: "btn btn-outline-primary" do %>
+          <i class="bi bi-arrow-left"></i> Back to Organization
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Member Statistics -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card text-center stats-card">
+        <div class="card-body">
+          <i class="bi bi-people display-4 mb-2"></i>
+          <h4><%= @member_stats[:total_members] %></h4>
+          <p class="mb-0">Total Members</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-3">
+      <div class="card text-center bg-success text-white">
+        <div class="card-body">
+          <i class="bi bi-person-check display-4 mb-2"></i>
+          <h4><%= @member_stats[:adult_members] %></h4>
+          <p class="mb-0">Adult Members</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-3">
+      <div class="card text-center bg-warning text-dark">
+        <div class="card-body">
+          <i class="bi bi-person-hearts display-4 mb-2"></i>
+          <h4><%= @member_stats[:minor_members] %></h4>
+          <p class="mb-0">Minor Members</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-3">
+      <div class="card text-center bg-info text-white">
+        <div class="card-body">
+          <i class="bi bi-shield-check display-4 mb-2"></i>
+          <h4><%= @member_stats[:admin_count] %></h4>
+          <p class="mb-0">Administrators</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Activity Timeline Chart -->
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="bi bi-activity"></i> Activity Timeline (Last 30 Days)
+          </h5>
+        </div>
+        <div class="card-body">
+          <% if defined?(Chartkick) %>
+            <%= line_chart @activity_chart_data, 
+                          height: "300px", 
+                          colors: ["#0d6efd"],
+                          suffix: " activities" %>
+          <% else %>
+            <div class="alert alert-info">
+              <i class="bi bi-info-circle"></i> Activity chart will be displayed here when Chartkick is properly configured.
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Role Distribution -->
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="bi bi-pie-chart"></i> Role Distribution
+          </h5>
+        </div>
+        <div class="card-body">
+          <% if defined?(Chartkick) %>
+            <%= pie_chart @user_role_chart_data, 
+                          height: "300px",
+                          colors: ["#dc3545", "#ffc107", "#198754"] %>
+          <% else %>
+            <div class="role-stats">
+              <% @user_role_chart_data.each do |role, count| %>
+                <div class="d-flex justify-content-between mb-2">
+                  <span class="badge bg-<%= role == 'admin' ? 'danger' : role == 'moderator' ? 'warning' : 'success' %>">
+                    <%= role.capitalize %>
+                  </span>
+                  <strong><%= count %></strong>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detailed Statistics -->
+  <div class="row mt-4">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="bi bi-table"></i> Detailed Statistics
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Metric</th>
+                  <th>Value</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><i class="bi bi-people text-primary"></i> Total Members</td>
+                  <td><span class="badge bg-primary"><%= @member_stats[:total_members] %></span></td>
+                  <td>All users who are members of this organization</td>
+                </tr>
+                <tr>
+                  <td><i class="bi bi-person-check text-success"></i> Adult Members</td>
+                  <td><span class="badge bg-success"><%= @member_stats[:adult_members] %></span></td>
+                  <td>Members who are 18 years or older</td>
+                </tr>
+                <tr>
+                  <td><i class="bi bi-person-hearts text-warning"></i> Minor Members</td>
+                  <td><span class="badge bg-warning"><%= @member_stats[:minor_members] %></span></td>
+                  <td>Members who are under 18 years old</td>
+                </tr>
+                <tr>
+                  <td><i class="bi bi-shield-check text-danger"></i> Administrators</td>
+                  <td><span class="badge bg-danger"><%= @member_stats[:admin_count] %></span></td>
+                  <td>Members with full administrative privileges</td>
+                </tr>
+                <tr>
+                  <td><i class="bi bi-person-badge text-info"></i> Moderators</td>
+                  <td><span class="badge bg-info"><%= @member_stats[:moderator_count] %></span></td>
+                  <td>Members with moderation privileges</td>
+                </tr>
+                <tr>
+                  <td><i class="bi bi-activity text-secondary"></i> Recent Activities</td>
+                  <td><span class="badge bg-secondary"><%= @organization.participation_activities.recent.count %></span></td>
+                  <td>Number of activities in the last 30 days</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Activities -->
+  <div class="row mt-4">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="bi bi-clock-history"></i> Recent Activities
+          </h5>
+        </div>
+        <div class="card-body">
+          <% recent_activities = @organization.participation_activities.recent.limit(20) %>
+          <% if recent_activities.any? %>
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>User</th>
+                    <th>Activity</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% recent_activities.each do |activity| %>
+                    <tr>
+                      <td>
+                        <%= activity.user.full_name %>
+                        <% if activity.user.minor? %>
+                          <span class="badge bg-warning text-dark ms-1">
+                            <%= activity.user.age %> years
+                          </span>
+                        <% end %>
+                      </td>
+                      <td><%= activity.activity_description %></td>
+                      <td class="text-muted">
+                        <i class="bi bi-clock"></i> <%= time_ago_in_words(activity.created_at) %> ago
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          <% else %>
+            <div class="text-center py-4">
+              <i class="bi bi-activity text-muted display-4 mb-3"></i>
+              <p class="text-muted">No recent activities to display.</p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

@@ -1,0 +1,165 @@
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-5">
+          <i class="bi bi-building"></i> Organizations
+        </h1>
+        <% if user_signed_in? %>
+          <%= link_to new_organization_path, class: "btn btn-primary" do %>
+            <i class="bi bi-plus-circle"></i> Create Organization
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <% if user_signed_in? && @user_organizations&.any? %>
+    <!-- User's Organizations -->
+    <div class="row mb-5">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+              <i class="bi bi-person-check"></i> My Organizations
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <% @user_organizations.each do |organization| %>
+                <div class="col-md-6 col-lg-4 mb-3">
+                  <div class="card organization-card h-100">
+                    <div class="card-body">
+                      <h6 class="card-title">
+                        <%= link_to organization.name, organization_path(organization), class: "text-decoration-none" %>
+                      </h6>
+                      <p class="card-text text-muted">
+                        <%= truncate(organization.description, length: 80) %>
+                      </p>
+                      <div class="mt-auto">
+                        <span class="badge bg-success">
+                          <%= current_user.organization_role(organization).capitalize %>
+                        </span>
+                        <small class="text-muted ms-2">
+                          <i class="bi bi-people"></i> <%= organization.members_count %> members
+                        </small>
+                      </div>
+                      <div class="mt-2">
+                        <%= link_to "View Details", organization_path(organization), class: "btn btn-sm btn-outline-primary" %>
+                        <% if current_user.admin_of?(organization) %>
+                          <%= link_to "Analytics", analytics_organization_path(organization), class: "btn btn-sm btn-outline-info" %>
+                        <% end %>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- All Active Organizations -->
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="bi bi-globe"></i> All Active Organizations
+          </h5>
+        </div>
+        <div class="card-body">
+          <% if @organizations.any? %>
+            <div class="row">
+              <% @organizations.each do |organization| %>
+                <div class="col-md-6 col-lg-4 mb-4">
+                  <div class="card organization-card h-100">
+                    <div class="card-body">
+                      <h6 class="card-title">
+                        <% if user_signed_in? && current_user.member_of?(organization) %>
+                          <%= link_to organization.name, organization_path(organization), class: "text-decoration-none" %>
+                        <% else %>
+                          <%= organization.name %>
+                        <% end %>
+                      </h6>
+                      <p class="card-text text-muted">
+                        <%= truncate(organization.description, length: 100) %>
+                      </p>
+                      
+                      <div class="organization-stats mb-3">
+                        <small class="text-muted">
+                          <i class="bi bi-people"></i> <%= organization.members_count %> members
+                        </small>
+                      </div>
+
+                      <div class="action-buttons">
+                        <% if user_signed_in? %>
+                          <% if current_user.member_of?(organization) %>
+                            <span class="badge bg-success mb-2">
+                              <i class="bi bi-check-circle"></i> Member
+                            </span>
+                            <div>
+                              <%= link_to "View Organization", organization_path(organization), class: "btn btn-sm btn-primary" %>
+                              <%= button_to "Leave", leave_organization_path(organization), 
+                                          method: :delete, 
+                                          class: "btn btn-sm btn-outline-danger",
+                                          form: { style: "display: inline-block;" },
+                                          data: { confirm: "Are you sure you want to leave this organization?" } %>
+                            </div>
+                          <% elsif organization.can_user_join?(current_user) %>
+                            <% if current_user.minor? && !current_user.can_participate_without_consent? %>
+                              <div class="alert alert-warning py-2">
+                                <small>
+                                  <i class="bi bi-shield-exclamation"></i>
+                                  Parental consent required to join
+                                </small>
+                              </div>
+                              <%= link_to "Get Parental Consent", new_parental_consent_path, class: "btn btn-sm btn-warning" %>
+                            <% else %>
+                              <%= button_to "Join Organization", join_organization_path(organization), 
+                                          method: :post, 
+                                          class: "btn btn-sm btn-success",
+                                          form: { style: "display: inline-block;" } %>
+                            <% end %>
+                          <% else %>
+                            <span class="badge bg-secondary">
+                              <i class="bi bi-lock"></i> Cannot Join
+                            </span>
+                          <% end %>
+                        <% else %>
+                          <div class="text-center">
+                            <%= link_to "Login to Join", new_user_session_path, class: "btn btn-sm btn-outline-primary" %>
+                          </div>
+                        <% end %>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+
+            <!-- Pagination -->
+            <% if @organizations.respond_to?(:current_page) %>
+              <div class="d-flex justify-content-center">
+                <%= paginate @organizations %>
+              </div>
+            <% end %>
+          <% else %>
+            <div class="text-center py-5">
+              <i class="bi bi-building text-muted display-4 mb-3"></i>
+              <h4 class="text-muted">No Organizations Available</h4>
+              <p class="text-muted mb-4">Be the first to create an organization!</p>
+              <% if user_signed_in? %>
+                <%= link_to "Create Organization", new_organization_path, class: "btn btn-primary" %>
+              <% else %>
+                <%= link_to "Sign Up to Create", new_user_registration_path, class: "btn btn-primary" %>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

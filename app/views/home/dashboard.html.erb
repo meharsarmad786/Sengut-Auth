@@ -1,0 +1,243 @@
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-5">
+          <i class="bi bi-speedometer2"></i> Dashboard
+        </h1>
+        <div class="user-info">
+          <span class="badge bg-primary fs-6">
+            Welcome, <%= current_user.full_name %>!
+          </span>
+          <% if current_user.minor? %>
+            <span class="badge bg-warning text-dark ms-2">
+              <%= current_user.age %> years old
+            </span>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Stats Row -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card stats-card text-center text-white">
+        <div class="card-body">
+          <i class="bi bi-building display-4 mb-2"></i>
+          <h4><%= current_user.organizations.count %></h4>
+          <p class="mb-0">My Organizations</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-3">
+      <div class="card bg-success text-center text-white">
+        <div class="card-body">
+          <i class="bi bi-activity display-4 mb-2"></i>
+          <h4><%= current_user.participation_activities.count %></h4>
+          <p class="mb-0">Total Activities</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-3">
+      <div class="card bg-info text-center text-white">
+        <div class="card-body">
+          <i class="bi bi-shield-check display-4 mb-2"></i>
+          <h4><%= current_user.organizations.where(organization_memberships: { role: 'admin' }).count %></h4>
+          <p class="mb-0">Admin Roles</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-3">
+      <div class="card bg-warning text-center text-dark">
+        <div class="card-body">
+          <i class="bi bi-calendar-check display-4 mb-2"></i>
+          <h4><%= current_user.age_group&.name || 'N/A' %></h4>
+          <p class="mb-0">Age Group</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- My Organizations -->
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="bi bi-building"></i> My Organizations
+          </h5>
+        </div>
+        <div class="card-body">
+          <% if current_user.organizations.any? %>
+            <div class="row">
+              <% current_user.organizations.limit(6).each do |organization| %>
+                <div class="col-md-6 mb-3">
+                  <div class="card organization-card h-100">
+                    <div class="card-body">
+                      <h6 class="card-title">
+                        <%= link_to organization.name, organization_path(organization), class: "text-decoration-none" %>
+                      </h6>
+                      <p class="card-text text-muted">
+                        <%= truncate(organization.description, length: 60) %>
+                      </p>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge bg-<%= current_user.organization_role(organization) == 'admin' ? 'danger' : current_user.organization_role(organization) == 'moderator' ? 'warning' : 'success' %>">
+                          <%= current_user.organization_role(organization).capitalize %>
+                        </span>
+                        <small class="text-muted">
+                          <i class="bi bi-people"></i> <%= organization.members_count %> members
+                        </small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+            
+            <% if current_user.organizations.count > 6 %>
+              <div class="text-center mt-3">
+                <%= link_to "View All Organizations", organizations_path, class: "btn btn-outline-primary" %>
+              </div>
+            <% end %>
+          <% else %>
+            <div class="text-center py-4">
+              <i class="bi bi-building text-muted display-4 mb-3"></i>
+              <h5 class="text-muted">No Organizations Yet</h5>
+              <p class="text-muted mb-4">Join an organization to get started!</p>
+              <%= link_to "Browse Organizations", organizations_path, class: "btn btn-primary" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activities & Account Status -->
+    <div class="col-md-4">
+      <!-- Account Status -->
+      <div class="card mb-3">
+        <div class="card-header">
+          <h6 class="mb-0">
+            <i class="bi bi-person-check"></i> Account Status
+          </h6>
+        </div>
+        <div class="card-body">
+          <div class="mb-2">
+            <div class="d-flex justify-content-between">
+              <span>Account Type:</span>
+              <span class="badge bg-<%= current_user.minor? ? 'warning' : 'success' %>">
+                <%= current_user.minor? ? 'Minor' : 'Adult' %>
+              </span>
+            </div>
+          </div>
+          
+          <% if current_user.minor? %>
+            <div class="mb-2">
+              <div class="d-flex justify-content-between">
+                <span>Parental Consent:</span>
+                <span class="badge bg-<%= current_user.can_participate_without_consent? ? 'success' : 'danger' %>">
+                  <%= current_user.can_participate_without_consent? ? 'Approved' : 'Required' %>
+                </span>
+              </div>
+            </div>
+            
+            <% unless current_user.can_participate_without_consent? %>
+              <div class="alert alert-warning py-2 mt-2">
+                <small>
+                  <i class="bi bi-shield-exclamation"></i>
+                  Parental consent required for full participation.
+                </small>
+                <div class="mt-1">
+                  <%= link_to "Submit Consent", new_parental_consent_path, class: "btn btn-sm btn-warning" %>
+                </div>
+              </div>
+            <% end %>
+          <% end %>
+          
+          <div class="mt-3">
+            <%= link_to "Edit Profile", edit_user_registration_path, class: "btn btn-sm btn-outline-primary w-100" %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Activities -->
+      <div class="card">
+        <div class="card-header">
+          <h6 class="mb-0">
+            <i class="bi bi-clock-history"></i> Recent Activities
+          </h6>
+        </div>
+        <div class="card-body">
+          <% recent_activities = current_user.participation_activities.recent.limit(5) %>
+          <% if recent_activities.any? %>
+            <div class="list-group list-group-flush">
+              <% recent_activities.each do |activity| %>
+                <div class="list-group-item border-0 px-0 py-2">
+                  <small class="text-muted d-block">
+                    <%= activity.activity_description %>
+                  </small>
+                  <small class="text-muted">
+                    <i class="bi bi-clock"></i> <%= time_ago_in_words(activity.created_at) %> ago
+                  </small>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="text-center py-3">
+              <i class="bi bi-activity text-muted display-6 mb-2"></i>
+              <p class="text-muted mb-0">No recent activities.</p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="row mt-4">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="bi bi-lightning"></i> Quick Actions
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-3 mb-2">
+              <%= link_to organizations_path, class: "btn btn-outline-primary w-100" do %>
+                <i class="bi bi-search"></i> Browse Organizations
+              <% end %>
+            </div>
+            <div class="col-md-3 mb-2">
+              <%= link_to new_organization_path, class: "btn btn-outline-success w-100" do %>
+                <i class="bi bi-plus-circle"></i> Create Organization
+              <% end %>
+            </div>
+            <div class="col-md-3 mb-2">
+              <%= link_to edit_user_registration_path, class: "btn btn-outline-info w-100" do %>
+                <i class="bi bi-person-gear"></i> Edit Profile
+              <% end %>
+            </div>
+            <% if current_user.minor? && !current_user.can_participate_without_consent? %>
+              <div class="col-md-3 mb-2">
+                <%= link_to new_parental_consent_path, class: "btn btn-outline-warning w-100" do %>
+                  <i class="bi bi-shield-check"></i> Get Consent
+                <% end %>
+              </div>
+            <% else %>
+              <div class="col-md-3 mb-2">
+                <%= link_to root_path, class: "btn btn-outline-secondary w-100" do %>
+                  <i class="bi bi-house"></i> Home
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 
