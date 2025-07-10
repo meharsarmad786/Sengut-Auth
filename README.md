@@ -55,7 +55,7 @@ This system provides a sophisticated authentication and authorization solution d
 
 ### 1. Clone the Repository
 ```bash
-git clone <repository-url>
+git clone https://github.com/meharsarmad786/Sengut-Auth.git
 cd sengut_auth
 ```
 
