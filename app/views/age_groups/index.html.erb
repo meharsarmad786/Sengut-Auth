@@ -1,0 +1,104 @@
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-5">
+          <i class="bi bi-people-fill"></i> Age Groups
+        </h1>
+      </div>
+    </div>
+  </div>
+
+  <% if user_signed_in? && @current_user_age_group %>
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <div class="alert alert-info">
+          <i class="bi bi-info-circle"></i>
+          <strong>Your Age Group:</strong> 
+          <%= link_to @current_user_age_group.name, age_group_path(@current_user_age_group), class: "alert-link" %>
+          (Age <%= current_user.age %>)
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="row">
+    <% @age_groups.each do |age_group| %>
+      <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card age-group-card h-100 <%= 'border-primary' if user_signed_in? && current_user.age_group == age_group %>">
+          <div class="card-body">
+            <h5 class="card-title">
+              <%= age_group.name %>
+              <% if user_signed_in? && current_user.age_group == age_group %>
+                <span class="badge bg-primary">Your Group</span>
+              <% end %>
+            </h5>
+            <p class="card-text text-muted">
+              <%= age_group.description %>
+            </p>
+            
+            <div class="age-range-info mb-3">
+              <span class="badge bg-secondary">
+                Ages <%= age_group.min_age %>-<%= age_group.max_age %> years
+              </span>
+            </div>
+
+            <% if user_signed_in? %>
+              <div class="participation-info mb-3">
+                <small class="text-muted">
+                  <i class="bi bi-people"></i> 
+                  <%= age_group.users.count %> members in this group
+                </small>
+              </div>
+            <% end %>
+
+            <div class="access-levels">
+              <h6 class="text-muted mb-2">Content Access:</h6>
+              <% case age_group.min_age %>
+              <% when 0..12 %>
+                <span class="badge bg-success me-1">Kids Content</span>
+                <span class="badge bg-light text-dark me-1">Teen Content</span>
+                <span class="badge bg-light text-dark">Adult Content</span>
+              <% when 13..17 %>
+                <span class="badge bg-success me-1">Kids Content</span>
+                <span class="badge bg-success me-1">Teen Content</span>
+                <span class="badge bg-light text-dark">Adult Content</span>
+              <% else %>
+                <span class="badge bg-success me-1">Kids Content</span>
+                <span class="badge bg-success me-1">Teen Content</span>
+                <span class="badge bg-success">Adult Content</span>
+              <% end %>
+            </div>
+
+            <div class="mt-3">
+              <%= link_to "View Details", age_group_path(age_group), class: "btn btn-sm btn-outline-primary" %>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <% if @age_groups.empty? %>
+    <div class="text-center py-5">
+      <i class="bi bi-people text-muted display-4 mb-3"></i>
+      <h4 class="text-muted">No Age Groups Available</h4>
+      <p class="text-muted">Age groups help organize content and participation rules.</p>
+    </div>
+  <% end %>
+</div>
+
+<style>
+.age-group-card {
+  transition: transform 0.2s ease-in-out;
+}
+
+.age-group-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.age-group-card.border-primary {
+  box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25);
+}
+</style> 

@@ -29,6 +29,11 @@ class AgeGroup < ApplicationRecord
     )
   end
 
+  # Alias for consistency
+  def users
+    users_in_group
+  end
+
   def requires_parental_consent?
     max_age < 18
   end
